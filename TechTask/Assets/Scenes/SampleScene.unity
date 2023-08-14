@@ -1076,7 +1076,7 @@ GameObject:
   - component: {fileID: 1314203162}
   m_Layer: 0
   m_Name: Monster
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1861,7 +1861,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2837299641521316887, guid: b29123e4ffd5e94458ccb3167e120f85, type: 3}
       propertyPath: m_TagString
-      value: Player
+      value: Monster
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

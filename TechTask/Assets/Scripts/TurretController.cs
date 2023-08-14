@@ -1,17 +1,17 @@
+using System.Collections;
 using UnityEngine;
 
 public class TurretController : MonoBehaviour
 {
-    [SerializeField] private float rotationSpeed = 5.0f; 
-    [SerializeField] private float detectionRadius = 10.0f; 
-    [SerializeField] private GameObject projectilePrefab; 
-    [SerializeField] private Transform projectileSpawnPoint; 
-    [SerializeField] private float fireRate = 2.0f; 
-    [SerializeField] private float projectileSpeed = 10.0f; 
-    private float lastFireTime; 
+    [SerializeField] private float rotationSpeed = 5.0f;
+    [SerializeField] private float detectionRadius = 10.0f;
+    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private Transform projectileSpawnPoint;
+    [SerializeField] private float fireRate = 2.0f;
+    [SerializeField] private float projectileSpeed = 10.0f;
 
-    private Transform target; 
-    private bool isFiring = false; 
+    private Transform target;
+    private Coroutine firingCoroutine;
 
 
     private void Update()
@@ -19,18 +19,20 @@ public class TurretController : MonoBehaviour
         MonsterDetected();
         TurretRotation();
     }
+
     private void MonsterDetected()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
         foreach (Collider collider in colliders)
         {
-            if (collider.CompareTag("Player"))
+            if (collider.CompareTag("Monster"))
             {
                 target = collider.transform;
                 break;
             }
         }
     }
+
     private void TurretRotation()
     {
         if (target != null)
@@ -39,15 +41,11 @@ public class TurretController : MonoBehaviour
             targetDirection.y = 0.0f;
 
             Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
             if (Quaternion.Angle(transform.rotation, targetRotation) <= 1.0f)
             {
-                if (!isFiring)
-                {
-                    StartFiring();
-                }
+                StartFiring();
             }
             else
             {
@@ -62,21 +60,28 @@ public class TurretController : MonoBehaviour
 
     private void StartFiring()
     {
-        isFiring = true;
-        Fire();
-        InvokeRepeating(nameof(Fire), 1.0f / fireRate, 1.0f / fireRate);
+        if (firingCoroutine == null)
+        {
+            firingCoroutine = StartCoroutine(FireCoroutine());
+        }
     }
 
     private void StopFiring()
     {
-        isFiring = false;
-        CancelInvoke(nameof(Fire));
+        if (firingCoroutine != null)
+        {
+            StopCoroutine(firingCoroutine);
+            firingCoroutine = null;
+        }
     }
 
-    private void OnDrawGizmosSelected()
+    private IEnumerator FireCoroutine()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+        while (target != null)
+        {
+            Fire();
+            yield return new WaitForSeconds(1.0f / fireRate);
+        }
     }
 
     private void Fire()
@@ -93,11 +98,14 @@ public class TurretController : MonoBehaviour
                 projectileRigidbody.velocity = targetDirection.normalized * projectileSpeed;
             }
 
-            Physics.IgnoreCollision(projectile.GetComponent<Collider>(), GetComponent<Collider>()); // Игнорируем столкновение с турелью
-
-            projectile.AddComponent<ProjectileCollisionHandler>();
-
+            Physics.IgnoreCollision(projectile.GetComponent<Collider>(), GetComponent<Collider>());
             Destroy(projectile, 2f);
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 }

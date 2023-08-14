@@ -59,7 +59,6 @@ public class MonsterController : MonoBehaviour
 
         if (monsterTransform != null && targetObject != null)
         {
-            Debug.Log("Hit");
             reachedTargetCount++;
 
             monsterLifeTime = timer.GetElapsedTime();
